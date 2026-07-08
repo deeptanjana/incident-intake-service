@@ -27,17 +27,30 @@ public class IncidentController {
     }
 
     @PostMapping
-    public ResponseEntity<IncidentResponse> createIncident(@Valid @RequestBody CreateIncidentRequest request) {
-        log.info("event=incident.create.request_received severity={} reportedBy={} externalReferenceId={}",
-                request.getSeverity(), request.getReportedBy(), request.getExternalReferenceId());
-
+    public ResponseEntity<CreateIncidentApiResponse> createIncident(
+            @Valid @RequestBody CreateIncidentRequest request
+    ) {
         CreateIncidentResult result = incidentService.createIncident(request);
-        IncidentResponse response = IncidentResponse.from(result.incident());
 
-        if (result.created()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        }
-        return ResponseEntity.ok(response);
+        boolean created = result.created();
+
+        String message = created
+                ? "Incident created successfully"
+                : "Incident already exists for externalReferenceId: "
+                + result.incident().getExternalReferenceId();
+
+        CreateIncidentApiResponse response =
+                new CreateIncidentApiResponse(
+                        created,
+                        message,
+                        result.incident()
+                );
+
+        HttpStatus status = created
+                ? HttpStatus.CREATED
+                : HttpStatus.OK;
+
+        return ResponseEntity.status(status).body(response);
     }
 
     @GetMapping("/{id}")

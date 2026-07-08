@@ -52,11 +52,13 @@ class IncidentControllerIntegrationTest {
                                 }
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id", notNullValue()))
-                .andExpect(jsonPath("$.title").value("Power outage in Building A"))
-                .andExpect(jsonPath("$.severity").value("HIGH"))
-                .andExpect(jsonPath("$.status").value("OPEN"))
-                .andExpect(jsonPath("$.externalReferenceId").value("EXT-100"));
+                .andExpect(jsonPath("$.created").value(true))
+                .andExpect(jsonPath("$.message").value("Incident created successfully"))
+                .andExpect(jsonPath("$.incident.id", notNullValue()))
+                .andExpect(jsonPath("$.incident.title").value("Power outage in Building A"))
+                .andExpect(jsonPath("$.incident.severity").value("HIGH"))
+                .andExpect(jsonPath("$.incident.status").value("OPEN"))
+                .andExpect(jsonPath("$.incident.externalReferenceId").value("EXT-100"));
     }
 
     @Test
@@ -84,8 +86,10 @@ class IncidentControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(firstId))
-                .andExpect(jsonPath("$.externalReferenceId").value("EXT-DUP-1"));
+                .andExpect(jsonPath("$.created").value(false))
+                .andExpect(jsonPath("$.message").value("Incident already exists for externalReferenceId: EXT-DUP-1"))
+                .andExpect(jsonPath("$.incident.id").value(firstId))
+                .andExpect(jsonPath("$.incident.externalReferenceId").value("EXT-DUP-1"));
 
         assertThat(incidentRepository.count()).isEqualTo(1);
     }
